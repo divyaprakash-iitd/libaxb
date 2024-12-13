@@ -1,13 +1,39 @@
 #ifndef SPARSE_SOLVER_H
 #define SPARSE_SOLVER_H
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+// C-compatible function declarations for interoperability
+void initialize_sparse_matrix(
+    const double* values, 
+    const int* column_indices, 
+    const int* row_pointers,
+    int rows, 
+    int cols, 
+    int nnz
+);
+
+void solve_sparse_system(
+    const double* rhs,
+    int rhs_size,
+    double* solution,
+    double tolerance,
+    int max_iterations
+);
+
+#ifdef __cplusplus
+}
+#endif
+
 #include <vector>
 #include <Eigen/Sparse>
 #include <Eigen/IterativeLinearSolvers>
 
 class SparseSolver {
 public:
-    // Initialize function to create and store sparse matrix globally
+    // Existing C++ class methods remain the same
     static void initialize(
         const double* values, 
         const int* column_indices, 
@@ -17,7 +43,6 @@ public:
         int nnz
     );
 
-    // Solve function that uses the globally stored matrix
     static std::vector<double> solve(
         const double* rhs,
         int rhs_size,
@@ -26,7 +51,7 @@ public:
         int max_iterations = 1000
     );
 
-    // Utility functions (optional)
+    // Utility functions remain the same
     static std::vector<double> readDoubleFile(const std::string& filename);
     static std::vector<int> readIntegerFile(const std::string& filename);
 };

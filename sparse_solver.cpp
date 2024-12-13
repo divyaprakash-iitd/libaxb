@@ -2,6 +2,32 @@
 #include <iostream>
 #include <fstream>
 #include <cmath>
+#include <cstring>
+
+// Existing implementation remains the same...
+
+// C-compatible wrapper functions
+void initialize_sparse_matrix(
+    const double* values,
+    const int* column_indices,
+    const int* row_pointers,
+    int rows,
+    int cols,
+    int nnz
+) {
+    SparseSolver::initialize(values, column_indices, row_pointers, rows, cols, nnz);
+}
+
+void solve_sparse_system(
+    const double* rhs,
+    int rhs_size,
+    double* solution,
+    double tolerance,
+    int max_iterations
+) {
+    SparseSolver::solve(rhs, rhs_size, solution, tolerance, max_iterations);
+}
+
 
 // Global variables to store the matrix and its dimensions
 namespace {

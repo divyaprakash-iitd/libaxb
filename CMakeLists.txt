@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(SparseSolverLibrary)
+project(SparseSolverLibrary LANGUAGES CXX Fortran)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 14)
@@ -18,9 +18,9 @@ target_link_libraries(sparse_solver
     Eigen3::Eigen
 )
 
-# Optional: Create example executable for testing
-add_executable(solve_example main.cpp)
-target_link_libraries(solve_example 
+# Create Fortran executable
+add_executable(solve_fortran fortran_main.f90)
+target_link_libraries(solve_fortran 
     sparse_solver
     Eigen3::Eigen
 )
