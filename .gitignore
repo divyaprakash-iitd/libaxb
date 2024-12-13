@@ -1,0 +1,70 @@
+# Compiled object files
+*.o
+*.obj
+
+# Precompiled headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.a
+*.lib
+
+# Executable files
+*.out
+*.exe
+
+# Debug files
+*.dSYM/
+*.stackdump
+*.core
+
+# Fortran-specific files
+*.mod
+*.MOD
+
+# Build directories
+build/
+cmake-build-*/
+Makefile
+CMakeFiles/
+#CMakeCache.txt # I am keeping this for reference
+cmake_install.cmake
+*.make
+
+# Dependency files
+*.d
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+
+# Editor/IDE-specific files
+.vscode/
+.idea/
+*.swp
+*~
+*.kate-swp
+*.kdevelop.pcs
+*.kdev4
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+*.orig
+*.rej
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Others
+tags
+
