@@ -1,59 +1,99 @@
-I'll modify the CMakeLists.txt to include these compilation flags:
+# libaxb - A Library for Solving Sparse Linear Systems
 
-```cmake
-cmake_minimum_required(VERSION 3.10)
-project(SparseSolverLibrary LANGUAGES CXX Fortran)
+`libaxb` is a C++ library with C++ and Fortran interfaces for solving sparse linear systems of the form Ax = b, where A is a sparse matrix stored in Compressed Row Storage (CRS) format. The library uses the Eigen library's BiCGSTAB solver with an Incomplete LU preconditioner.
 
-# Set C++ standard
-set(CMAKE_CXX_STANDARD 14)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
+## Features
 
-# Add compilation flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -O3 -march=native -DNDEBUG")
+- Efficient sparse matrix construction and storage using Eigen library
+- Optimized BiCGSTAB solver with ILU preconditioner
+- OpenMP parallelization support
+- Dual interface supporting both C++ and Fortran applications
+- Global storage of sparse matrix for multiple solves with different RHS vectors
 
-# Find Eigen package
-find_package(Eigen3 REQUIRED)
+## Prerequisites
 
-# Create library
-add_library(sparse_solver SHARED 
-    sparse_solver.cpp
-)
+- CMake (>= 3.10)
+- C++ compiler with OpenMP support
+- Fortran compiler (for Fortran interface)
+- Eigen3 library
+- Linux environment (tested on Ubuntu)
 
-# Set include directories for Eigen
-target_include_directories(sparse_solver PUBLIC 
-    /usr/include/eigen3
-)
+### Installing Prerequisites on Ubuntu
 
-# Link Eigen and OpenMP
-target_link_libraries(sparse_solver 
-    Eigen3::Eigen
-    OpenMP::OpenMP_CXX
-)
-
-# Find OpenMP package
-find_package(OpenMP REQUIRED)
-
-# Create Fortran executable
-add_executable(solve_fortran 
-    sparse_solver_interface.f90
-    fortran_main.f90
-)
-
-target_link_libraries(solve_fortran 
-    sparse_solver
-    Eigen3::Eigen
-    OpenMP::OpenMP_CXX
-)
-
+```bash
+sudo apt-get update
+sudo apt-get install cmake g++ gfortran libeigen3-dev
 ```
 
-The key changes are:
-1. Added `-fopenmp -O3 -march=native -DNDEBUG` flags
-2. Added explicit include path for Eigen3
-3. Added OpenMP package requirement and linking
-4. Ensured both library and executable get the OpenMP flags
+## Input File Format
 
-Build as before:
+The library expects input files in the following format:
+
+- `dimensions.txt`: Two integers specifying number of rows and columns of the matrix
+- `values.txt`: Non-zero values of the matrix in CRS format
+- `column_indices.txt`: Column indices for each non-zero value
+- `row_pointers.txt`: Row pointer array in CRS format
+- `rhs.txt`: Right-hand side vector b
+
+## Using the Library
+
+### In C++
+
+```cpp
+#include "sparse_solver.h"
+#include <vector>
+
+// Read input files using utility functions
+std::vector<double> values = SparseSolver::readDoubleFile("values.txt");
+std::vector<int> column_indices = SparseSolver::readIntegerFile("column_indices.txt");
+std::vector<int> row_pointers = SparseSolver::readIntegerFile("row_pointers.txt");
+std::vector<double> rhs = SparseSolver::readDoubleFile("rhs.txt");
+
+// Initialize sparse matrix
+SparseSolver::initialize(
+    values.data(),
+    column_indices.data(),
+    row_pointers.data(),
+    rows,
+    cols,
+    values.size()
+);
+
+// Prepare solution vector
+std::vector<double> solution(rhs.size());
+
+// Solve the system
+SparseSolver::solve(
+    rhs.data(),
+    rhs.size(),
+    solution.data()
+);
+```
+
+### In Fortran
+
+```fortran
+use sparse_solver_interface
+use iso_c_binding
+
+! Declare arrays
+real(c_double), allocatable :: values(:)
+integer(c_int), allocatable :: column_indices(:)
+integer(c_int), allocatable :: row_pointers(:)
+real(c_double), allocatable :: rhs(:)
+real(c_double), allocatable :: solution(:)
+
+! After reading data into arrays...
+
+! Initialize matrix
+call initialize_sparse_matrix(values, column_indices, row_pointers, rows, cols, nnz)
+
+! Solve system
+call solve_sparse_system(rhs, rhs_size, solution, 1.0d-6, 1000)
+```
+
+## Building the Library
+
 ```bash
 mkdir build
 cd build
@@ -61,13 +101,62 @@ cmake ..
 make
 ```
 
-Or if you prefer to use g++ directly for just the library:
-```bash
-g++ -shared -fPIC -fopenmp -O3 -march=native -DNDEBUG -I /usr/include/eigen3 sparse_solver.cpp -o libsparse_solver.so
+This will create:
+- `libsparse_solver.so`: The shared library
+- `solve_example`: C++ example executable
+- `solve_fortran`: Fortran example executable
+
+## Linking with Your Project
+
+### For C++ Projects
+
+In your CMakeLists.txt:
+```cmake
+find_package(Eigen3 REQUIRED)
+find_package(OpenMP REQUIRED)
+
+target_link_libraries(your_executable 
+    sparse_solver
+    Eigen3::Eigen
+    OpenMP::OpenMP_CXX
+)
 ```
 
-Then compile the Fortran code with:
+### For Fortran Projects
+
+In your Makefile:
+```makefile
+LIB_DIR = -L/path/to/libaxb/build
+LIB_L = -lsparse_solver
+LDFLAGS = $(LIB_DIR) $(LIB_L)
+```
+
+Add to your .bashrc:
 ```bash
-gfortran sparse_solver_interface.f90 fortran_main.f90 -L. -lsparse_solver -I/usr/include/eigen3 -o solve_fortran
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/path/to/libaxb/build
+```
+
+## Solver Parameters
+
+- Default tolerance: 1e-6
+- Default maximum iterations: 1000
+- ILU preconditioner drop tolerance: 1e-4
+
+## Example Files
+
+The repository includes complete examples:
+- `main.cpp`: C++ implementation example
+- `fortran_main.f90`: Fortran implementation example
+- `sparse_solver_interface.f90`: Fortran interface module
+
+## Directory Structure
+```
+libaxb/
+├── CMakeLists.txt
+├── main.cpp
+├── fortran_main.f90
+├── sparse_solver.cpp
+├── sparse_solver.h
+└── sparse_solver_interface.f90
 ```
 
